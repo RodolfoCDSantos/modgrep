@@ -55,15 +55,15 @@ static void *xrealloc(void *ptr, size_t size) {
 
 static const char *fname(uint8_t c) {
     switch (c) {
-    case 1: return "Read Coils";
-    case 2: return "Read Discrete Inputs";
-    case 3: return "Read Holding Registers";
-    case 4: return "Read Input Registers";
-    case 5: return "Write Single Coil";
-    case 6: return "Write Single Register";
-    case 15: return "Write Multiple Coils";
-    case 16: return "Write Multiple Registers";
-    default: return "Unknown Function";
+    case 1: return "RdCoils";
+    case 2: return "RdDI";
+    case 3: return "RdHR";
+    case 4: return "RdIR";
+    case 5: return "WrCoil";
+    case 6: return "WrReg";
+    case 15: return "WrCoils";
+    case 16: return "WrRegs";
+    default: return "Unknown";
     }
 }
 
@@ -76,10 +76,10 @@ static void describe(const uint8_t *f, size_t len, int req, char *out, size_t n)
     size_t m;
 
     if (fc & 0x80) {
-        snprintf(out, n, "EXCEPTION %s (0x%02x) code=0x%02x", fname(base), fc, r ? d[0] : 0);
+        snprintf(out, n, "EXC %s (0x%02x) code=0x%02x", fname(base), fc, r ? d[0] : 0);
         return;
     }
-    w = snprintf(out, n, "%s (0x%02x)", fname(base), fc);
+    w = snprintf(out, n, "%s 0x%02x", fname(base), fc);
     if (w < 0 || (size_t)w >= n)
         return;
     p = out + w;
@@ -89,15 +89,15 @@ static void describe(const uint8_t *f, size_t len, int req, char *out, size_t n)
         if (req && r >= 4)
             snprintf(p, m, " addr=%u qty=%u", u16(d), u16(d + 2));
         else if (!req && r >= 1)
-            snprintf(p, m, " bytes=%u", d[0]);
+            snprintf(p, m, " b=%u", d[0]);
         break;
     case 5: case 6:
         if (r >= 4)
-            snprintf(p, m, " addr=%u value=%u", u16(d), u16(d + 2));
+            snprintf(p, m, " addr=%u val=%u", u16(d), u16(d + 2));
         break;
     case 15: case 16:
         if (req && r >= 5)
-            snprintf(p, m, " addr=%u qty=%u bytes=%u", u16(d), u16(d + 2), d[4]);
+            snprintf(p, m, " addr=%u qty=%u b=%u", u16(d), u16(d + 2), d[4]);
         else if (!req && r >= 4)
             snprintf(p, m, " addr=%u qty=%u", u16(d), u16(d + 2));
         break;
@@ -282,7 +282,7 @@ static void ladder(size_t ci) {
 
     for (;;) {
         conv_t *c;
-        int lx = 18, rx = COLS - 18, rows, i, k;
+        int lx = 14, rx = COLS - 14, rows, i, k;
         char tb[32], status[300];
         msg_t *cur = NULL;
 
@@ -306,22 +306,22 @@ static void ladder(size_t ci) {
         mvprintw(0, 0, " modgrep - ladder diagram (%zu messages)%s", c->count, live ? " (live)" : "");
         attroff(A_REVERSE);
         attron(COLOR_PAIR(4) | A_BOLD);
-        mvprintw(2, lx - 8, "%-15s", c->client);
-        mvprintw(2, rx - 8, "%-15s", c->server);
+        mvprintw(2, lx - 6, "%-13s", c->client);
+        mvprintw(2, rx - 7, "%-13s", c->server);
         attroff(COLOR_PAIR(4) | A_BOLD);
         mvvline(3, lx, ACS_VLINE, LINES - 6);
         mvvline(3, rx, ACS_VLINE, LINES - 6);
 
         for (i = 0; i < rows && top + (size_t)i < c->count; i++) {
             msg_t *m = &c->msgs[top + (size_t)i];
-            int r = 4 + i * 2, pair, w = rx - lx - 3;
+            int r = 4 + i * 2, pair, w = rx - lx - 5;
 
             pair = (m->fc & 0x80) ? 3 : (m->is_request ? 1 : 2);
             fmt_time(&m->ts, tb, sizeof tb);
             mvprintw(r + 1, 0, "%s", tb);
             if (top + (size_t)i == sel)
                 attron(A_REVERSE);
-            mvprintw(r, lx + 2, "%.*s", w, m->text);
+            mvprintw(r, lx + 3, "%.*s", w, m->text);
             attroff(A_REVERSE);
             attron(COLOR_PAIR(pair) | A_BOLD);
             mvhline(r + 1, lx + 1, ACS_HLINE, rx - lx - 1);
@@ -346,13 +346,12 @@ static void ladder(size_t ci) {
                         break;
                     }
             fmt_time(&cur->ts, tb, sizeof tb);
-            snprintf(status, sizeof status, " %s  %s:%u -> %s:%u  tid=%u unit=%u%s", tb,
+            snprintf(status, sizeof status, " %s  %s:%u -> %s:%u  tid=%u unit=%u", tb,
                      cur->is_request ? c->client : c->server, cur->sport,
-                     cur->is_request ? c->server : c->client, cur->dport, cur->tid, cur->unit,
-                     ms >= 0 ? "  response time shown below" : "");
+                     cur->is_request ? c->server : c->client, cur->dport, cur->tid, cur->unit);
             if (ms >= 0) {
                 size_t l = strlen(status);
-                snprintf(status + l - 26, sizeof status - (l - 26), "  latency=%ld ms", ms);
+                snprintf(status + l, sizeof status - l, "  latency=%ld ms", ms);
             }
             if (detail) {
                 char hx[3 * RAW_MAX + 8];
