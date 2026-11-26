@@ -1,24 +1,19 @@
 # modgrep
 
-**modgrep** is a MODBUS TCP traffic analyzer for the terminal. It reads PCAP files or captures live traffic and shows each client/server conversation as a ladder diagram, in the spirit of sngrep.
-
-## Credits
-
-This project is a **spin-off inspired by [sngrep](https://github.com/irontec/sngrep)** by [Irontec](https://www.irontec.com/), the ncurses SIP message flow viewer. modgrep is an independent implementation for MODBUS TCP and does not contain sngrep source code. Many thanks to the sngrep authors for the idea and the user experience that inspired this tool.
+**modgrep** is a fast command-line MODBUS TCP traffic analyzer with an interactive ncurses ladder-diagram interface. It is inspired by [sngrep](https://github.com/irontec/sngrep).
 
 ## Features
 
-- Live capture (`-i`) and PCAP analysis (`-r`).
-- List of client/server conversations.
-- Ladder diagram: requests in green, responses in yellow, exceptions in red.
-- Decoded address, quantity and value fields for common function codes.
-- Request/response latency, matched by Transaction ID.
-- Raw hex view of the selected message.
-- Ethernet, VLAN, Linux cooked and raw IPv4 captures.
+- Analyze MODBUS TCP traffic from PCAP files or a live network interface
+- Interactive terminal user interface built with ncurses
+- Ladder diagram for client/server MODBUS transactions
+- Color-coded requests and responses
+- Transaction ID, unit ID, latency and raw hex inspection
+- Supports common MODBUS function codes
 
 ## Build
 
-Debian / Ubuntu / Kali:
+### Debian / Ubuntu / Kali Linux
 
 ```bash
 sudo apt update
@@ -31,31 +26,120 @@ cmake --build build
 
 ## Usage
 
+### Analyze a PCAP file
+
 ```bash
 ./build/modgrep -r capture.pcap
-sudo ./build/modgrep -i eth0
-./build/modgrep -r capture.pcap -p 1502
-./build/modgrep -r capture.pcap -f "tcp port 502 and host 192.168.88.31"
 ```
 
-Options:
+### Capture live traffic
 
-- `-r <file>`: analyze a PCAP file.
-- `-i <interface>`: capture live traffic (needs root).
-- `-p <port>`: MODBUS TCP server port (default 502).
-- `-f <filter>`: BPF filter (default: tcp port of -p).
+```bash
+sudo ./build/modgrep -i eth0
+```
 
-## Keys
+### Use a custom MODBUS TCP port
 
-- Up/Down or j/k: move selection.
-- Enter: open the ladder diagram (conversation list) or toggle raw hex (diagram).
-- PgUp/PgDn: scroll faster in the diagram.
-- q or Esc: go back / quit.
+```bash
+./build/modgrep -r capture.pcap -p 1502
+```
 
-## Limitations
+### Apply a BPF filter
 
-IPv4 only. MODBUS frames split across several TCP segments are not reassembled yet.
+```bash
+sudo ./build/modgrep -i eth0 -f "tcp port 502"
+```
+
+## Interface
+
+The conversation list shows detected MODBUS TCP conversations. Select one and press `Enter` to open the ladder diagram.
+
+- Cyan: MODBUS request from client to server
+- Yellow: MODBUS response from server to client
+- Red: MODBUS exception response
+- `Enter`: show or hide the raw hexadecimal payload
+- `Up/Down` or `j/k`: select a message
+- `PgUp/PgDn`: scroll
+- `q`: return or exit
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+This project is released under the MIT License.
+
+## Credits
+
+modgrep is an independent implementation inspired by [sngrep](https://github.com/irontec/sngrep), developed by Irontec.
+
+---
+
+# modgrep (Português brasileiro)
+
+**modgrep** é um analisador rápido de tráfego MODBUS TCP para linha de comando, com interface interativa em ncurses e diagrama de escada. É inspirado no [sngrep](https://github.com/irontec/sngrep).
+
+## Recursos
+
+- Analisa tráfego MODBUS TCP de arquivos PCAP ou de uma interface de rede em tempo real
+- Interface de terminal interativa construída com ncurses
+- Diagrama de escada para transações cliente/servidor MODBUS
+- Requisições e respostas identificadas por cores
+- Inspeção de Transaction ID, Unit ID, latência e conteúdo hexadecimal bruto
+- Suporte às funções MODBUS mais comuns
+
+## Compilação
+
+### Debian / Ubuntu / Kali Linux
+
+```bash
+sudo apt update
+sudo apt install -y build-essential cmake git libpcap-dev libncurses-dev
+git clone https://github.com/RodolfoCDSantos/modgrep.git
+cd modgrep
+cmake -S . -B build
+cmake --build build
+```
+
+## Uso
+
+### Analisar um arquivo PCAP
+
+```bash
+./build/modgrep -r captura.pcap
+```
+
+### Capturar tráfego em tempo real
+
+```bash
+sudo ./build/modgrep -i eth0
+```
+
+### Usar uma porta MODBUS TCP personalizada
+
+```bash
+./build/modgrep -r captura.pcap -p 1502
+```
+
+### Aplicar um filtro BPF
+
+```bash
+sudo ./build/modgrep -i eth0 -f "tcp port 502"
+```
+
+## Interface
+
+A lista de conversas mostra as conversas MODBUS TCP detectadas. Selecione uma conversa e pressione `Enter` para abrir o diagrama de escada.
+
+- Ciano: requisição MODBUS do cliente para o servidor
+- Amarelo: resposta MODBUS do servidor para o cliente
+- Vermelho: resposta de exceção MODBUS
+- `Enter`: mostra ou oculta o conteúdo hexadecimal bruto
+- `Cima/Baixo` ou `j/k`: seleciona uma mensagem
+- `PgUp/PgDn`: rola a tela
+- `q`: volta ou sai
+
+## Licença
+
+Este projeto é distribuído sob a licença MIT.
+
+## Créditos
+
+O modgrep é uma implementação independente inspirada no [sngrep](https://github.com/irontec/sngrep), desenvolvido pela Irontec.

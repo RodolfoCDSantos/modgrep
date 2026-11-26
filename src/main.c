@@ -55,14 +55,14 @@ static void *xrealloc(void *ptr, size_t size) {
 
 static const char *fname(uint8_t c) {
     switch (c) {
-    case 1: return "RdCoils";
-    case 2: return "RdDI";
-    case 3: return "RdHR";
-    case 4: return "RdIR";
-    case 5: return "WrCoil";
-    case 6: return "WrReg";
-    case 15: return "WrCoils";
-    case 16: return "WrRegs";
+    case 1: return "Read Coils";
+    case 2: return "Read Discrete Inputs";
+    case 3: return "Read Holding Registers";
+    case 4: return "Read Input Registers";
+    case 5: return "Write Single Coil";
+    case 6: return "Write Single Register";
+    case 15: return "Write Multiple Coils";
+    case 16: return "Write Multiple Registers";
     default: return "Unknown";
     }
 }
@@ -252,7 +252,7 @@ static void draw_list(size_t sel) {
     erase();
     attron(A_REVERSE);
     mvhline(0, 0, ' ', COLS);
-    mvprintw(0, 0, " modgrep - MODBUS TCP conversations%s", live ? " (live)" : "");
+    mvprintw(0, 0, " MODGREP - A fast command line ladder diagram for modbus traffic%s", live ? " (live)" : "");
     attroff(A_REVERSE);
     mvprintw(2, 0, " %-4s %-17s %-17s %-8s %s", "#", "Client", "Server", "Msgs", "First seen");
     for (i = 0; i < rows && top + (size_t)i < nconvs; i++) {
@@ -282,7 +282,7 @@ static void ladder(size_t ci) {
 
     for (;;) {
         conv_t *c;
-        int lx = 14, rx = COLS - 14, rows, i, k;
+        int lx = 18, rx = COLS - 8, rows, i, k;
         char tb[32], status[300];
         msg_t *cur = NULL;
 
@@ -303,28 +303,28 @@ static void ladder(size_t ci) {
         erase();
         attron(A_REVERSE);
         mvhline(0, 0, ' ', COLS);
-        mvprintw(0, 0, " modgrep - ladder diagram (%zu messages)%s", c->count, live ? " (live)" : "");
+        mvprintw(0, 0, " MODGREP - A fast command line ladder diagram for modbus traffic (%zu messages)%s", c->count, live ? " (live)" : "");
         attroff(A_REVERSE);
         attron(COLOR_PAIR(4) | A_BOLD);
         mvprintw(2, lx - 6, "%-13s", c->client);
         mvprintw(2, rx - 7, "%-13s", c->server);
         attroff(COLOR_PAIR(4) | A_BOLD);
-        mvvline(3, lx, ACS_VLINE, LINES - 6);
-        mvvline(3, rx, ACS_VLINE, LINES - 6);
+        mvvline(3, lx, '|', LINES - 6);
+        mvvline(3, rx, '|', LINES - 6);
 
         for (i = 0; i < rows && top + (size_t)i < c->count; i++) {
             msg_t *m = &c->msgs[top + (size_t)i];
-            int r = 4 + i * 2, pair, w = rx - lx - 5;
+            int r = 4 + i * 2, pair, w = rx - lx - 4;
 
             pair = (m->fc & 0x80) ? 3 : (m->is_request ? 1 : 2);
             fmt_time(&m->ts, tb, sizeof tb);
             mvprintw(r + 1, 0, "%s", tb);
             if (top + (size_t)i == sel)
                 attron(A_REVERSE);
-            mvprintw(r, lx + 3, "%.*s", w, m->text);
+            mvprintw(r, lx + 2, "%.*s", w, m->text);
             attroff(A_REVERSE);
             attron(COLOR_PAIR(pair) | A_BOLD);
-            mvhline(r + 1, lx + 1, ACS_HLINE, rx - lx - 1);
+            mvhline(r + 1, lx + 1, '-', rx - lx - 1);
             if (m->is_request)
                 mvaddch(r + 1, rx - 1, '>');
             else
@@ -369,7 +369,13 @@ static void ladder(size_t ci) {
         mvhline(LINES - 2, 0, ' ', COLS);
         mvprintw(LINES - 2, 0, "%.*s", COLS - 1, status);
         mvhline(LINES - 1, 0, ' ', COLS);
-        mvprintw(LINES - 1, 0, " Up/Down = select | PgUp/PgDn = scroll | Enter = raw hex | q = back");
+        {
+            const char *help = "Up/Down = select | PgUp/PgDn = scroll | Enter = raw hex | q = back";
+            int pad = (COLS - (int)strlen(help)) / 2;
+            if (pad < 0)
+                pad = 0;
+            mvprintw(LINES - 1, pad, "%s", help);
+        }
         attroff(A_REVERSE);
         refresh();
 
@@ -402,7 +408,7 @@ static void run_ui(void) {
     if (has_colors()) {
         start_color();
         use_default_colors();
-        init_pair(1, COLOR_GREEN, -1);
+        init_pair(1, COLOR_CYAN, -1);
         init_pair(2, COLOR_YELLOW, -1);
         init_pair(3, COLOR_RED, -1);
         init_pair(4, COLOR_CYAN, -1);
