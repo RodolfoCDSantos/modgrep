@@ -242,19 +242,28 @@ static void poll_live(void) {
         pcap_dispatch(live, -1, pcap_cb, NULL);
 }
 
+static void draw_title(const char *text) {
+    attron(COLOR_PAIR(2) | A_BOLD);
+    mvhline(0, 0, ' ', COLS);
+    mvprintw(0, 0, "%s", text);
+    attroff(COLOR_PAIR(2) | A_BOLD);
+}
+
 static void draw_list(size_t sel) {
-    int rows = LINES - 5, i;
+    int rows = LINES - 6, i;
     size_t top;
 
     if (rows < 1)
         rows = 1;
     top = sel >= (size_t)rows ? sel - (size_t)rows + 1 : 0;
     erase();
-    attron(A_REVERSE);
-    mvhline(0, 0, ' ', COLS);
-    mvprintw(0, 0, " MODGREP - A fast command line ladder diagram for modbus traffic%s", live ? " (live)" : "");
-    attroff(A_REVERSE);
-    mvprintw(2, 0, " %-4s %-17s %-17s %-8s %s", "#", "Client", "Server", "Msgs", "First seen");
+    draw_title(" MODGREP - A fast command line ladder diagram for modbus traffic");
+
+    attron(COLOR_PAIR(5));
+    mvhline(2, 0, ' ', COLS);
+    mvprintw(2, 2, "%-4s %-17s %-17s %-8s %s", "#", "Client", "Server", "Msgs", "First seen");
+    attroff(COLOR_PAIR(5));
+
     for (i = 0; i < rows && top + (size_t)i < nconvs; i++) {
         conv_t *c = &convs[top + (size_t)i];
         char tb[32];
@@ -269,10 +278,11 @@ static void draw_list(size_t sel) {
     }
     if (!nconvs)
         mvprintw(4, 2, "No MODBUS TCP traffic found yet.");
-    attron(A_REVERSE);
+
+    attron(COLOR_PAIR(2));
     mvhline(LINES - 1, 0, ' ', COLS);
     mvprintw(LINES - 1, 0, " Up/Down = select | Enter = ladder diagram | q = quit");
-    attroff(A_REVERSE);
+    attroff(COLOR_PAIR(2));
     refresh();
 }
 
@@ -290,7 +300,7 @@ static void ladder(size_t ci) {
         c = &convs[ci];
         if (rx < lx + 30)
             rx = lx + 30;
-        rows = (LINES - 7) / 2;
+        rows = (LINES - 9) / 2;
         if (rows < 1)
             rows = 1;
         if (c->count && sel >= c->count)
@@ -301,28 +311,45 @@ static void ladder(size_t ci) {
             top = sel - (size_t)rows + 1;
 
         erase();
-        attron(A_REVERSE);
-        mvhline(0, 0, ' ', COLS);
-        mvprintw(0, 0, " MODGREP - A fast command line ladder diagram for modbus traffic (%zu messages)%s", c->count, live ? " (live)" : "");
-        attroff(A_REVERSE);
+        {
+            char title[256];
+            snprintf(title, sizeof title, " MODGREP - A fast command line ladder diagram for modbus traffic (%zu messages)%s",
+                     c->count, live ? " (live)" : "");
+            draw_title(title);
+        }
+
+        attron(COLOR_PAIR(5));
+        mvhline(2, 0, ' ', COLS);
+        mvprintw(2, 2, "TIMESTAMP");
+        mvprintw(2, lx + 2, "MESSAGES");
+        attroff(COLOR_PAIR(5));
+
         attron(COLOR_PAIR(4) | A_BOLD);
-        mvprintw(2, lx - 6, "%-13s", c->client);
-        mvprintw(2, rx - 7, "%-13s", c->server);
+        mvprintw(3, lx - 6, "%-13s", c->client);
+        mvprintw(3, rx - 7, "%-13s", c->server);
         attroff(COLOR_PAIR(4) | A_BOLD);
-        mvvline(3, lx, '|', LINES - 6);
-        mvvline(3, rx, '|', LINES - 6);
+
+        mvvline(4, lx, '|', LINES - 7);
+        mvvline(4, rx, '|', LINES - 7);
 
         for (i = 0; i < rows && top + (size_t)i < c->count; i++) {
             msg_t *m = &c->msgs[top + (size_t)i];
-            int r = 4 + i * 2, pair, w = rx - lx - 4;
+            int r = 5 + i * 2, pair, w = rx - lx - 4;
 
             pair = (m->fc & 0x80) ? 3 : (m->is_request ? 1 : 2);
             fmt_time(&m->ts, tb, sizeof tb);
+
+            attron(COLOR_PAIR(2));
             mvprintw(r + 1, 0, "%s", tb);
+            attroff(COLOR_PAIR(2));
+
             if (top + (size_t)i == sel)
                 attron(A_REVERSE);
+            attron(COLOR_PAIR(pair) | A_BOLD);
             mvprintw(r, lx + 2, "%.*s", w, m->text);
+            attroff(COLOR_PAIR(pair) | A_BOLD);
             attroff(A_REVERSE);
+
             attron(COLOR_PAIR(pair) | A_BOLD);
             mvhline(r + 1, lx + 1, '-', rx - lx - 1);
             if (m->is_request)
@@ -346,7 +373,7 @@ static void ladder(size_t ci) {
                         break;
                     }
             fmt_time(&cur->ts, tb, sizeof tb);
-            snprintf(status, sizeof status, " %s  %s:%u -> %s:%u  tid=%u unit=%u", tb,
+            snprintf(status, sizeof status, "%s - %s:%u -> %s:%u  tid=%u unit=%u", tb,
                      cur->is_request ? c->client : c->server, cur->sport,
                      cur->is_request ? c->server : c->client, cur->dport, cur->tid, cur->unit);
             if (ms >= 0) {
@@ -360,14 +387,22 @@ static void ladder(size_t ci) {
                 for (b = 0; b < cur->rawlen; b++)
                     p += (size_t)snprintf(hx + p, sizeof hx - p, "%02x ", cur->raw[b]);
                 hx[p] = 0;
-                mvprintw(LINES - 3, 0, " raw: %.*s", COLS - 7, hx);
+                mvprintw(LINES - 4, 0, " raw: %.*s", COLS - 7, hx);
             }
         } else {
-            snprintf(status, sizeof status, " No messages");
+            snprintf(status, sizeof status, "No messages");
         }
-        attron(A_REVERSE);
-        mvhline(LINES - 2, 0, ' ', COLS);
-        mvprintw(LINES - 2, 0, "%.*s", COLS - 1, status);
+
+        {
+            int pad = (COLS - (int)strlen(status)) / 2;
+            if (pad < 0)
+                pad = 0;
+            attron(COLOR_PAIR(2));
+            mvprintw(LINES - 3, pad, "%s", status);
+            attroff(COLOR_PAIR(2));
+        }
+
+        attron(COLOR_PAIR(2));
         mvhline(LINES - 1, 0, ' ', COLS);
         {
             const char *help = "Up/Down = select | PgUp/PgDn = scroll | Enter = raw hex | q = back";
@@ -376,7 +411,7 @@ static void ladder(size_t ci) {
                 pad = 0;
             mvprintw(LINES - 1, pad, "%s", help);
         }
-        attroff(A_REVERSE);
+        attroff(COLOR_PAIR(2));
         refresh();
 
         k = getch();
@@ -412,6 +447,7 @@ static void run_ui(void) {
         init_pair(2, COLOR_YELLOW, -1);
         init_pair(3, COLOR_RED, -1);
         init_pair(4, COLOR_CYAN, -1);
+        init_pair(5, COLOR_BLACK, COLOR_YELLOW);
     }
     timeout(live ? 150 : -1);
 
