@@ -1,103 +1,61 @@
 # modgrep
 
-**modgrep** é um analisador de tráfego MODBUS TCP para terminal. Ele captura pacotes em tempo real ou lê arquivos PCAP, identifica transações MODBUS TCP e exibe detalhes como transaction ID, unit ID, function code, endereços de registradores e exceções.
+**modgrep** is a MODBUS TCP traffic analyzer for the terminal. It reads PCAP files or captures live traffic and shows each client/server conversation as a ladder diagram, in the spirit of sngrep.
 
-O projeto é um **spin-off inspirado no [sngrep](https://github.com/irontec/sngrep)**, da [Irontec](https://www.irontec.com/). O sngrep é um excelente visualizador de fluxos SIP em terminal; o modgrep adapta essa ideia de inspeção de protocolo e interface de terminal para o protocolo MODBUS TCP.
+## Credits
 
-## Créditos
+This project is a **spin-off inspired by [sngrep](https://github.com/irontec/sngrep)** by [Irontec](https://www.irontec.com/), the ncurses SIP message flow viewer. modgrep is an independent implementation for MODBUS TCP and does not contain sngrep source code. Many thanks to the sngrep authors for the idea and the user experience that inspired this tool.
 
-- Inspirado em **sngrep**, criado e mantido pela **Irontec**: https://github.com/irontec/sngrep
-- Obrigado à equipe do sngrep e à Irontec pela referência de arquitetura, experiência de uso em terminal e abordagem de captura de pacotes.
-- Este projeto não contém código-fonte do sngrep; é uma implementação independente para MODBUS TCP.
+## Features
 
-## Recursos
+- Live capture (`-i`) and PCAP analysis (`-r`).
+- List of client/server conversations.
+- Ladder diagram: requests in green, responses in yellow, exceptions in red.
+- Decoded address, quantity and value fields for common function codes.
+- Request/response latency, matched by Transaction ID.
+- Raw hex view of the selected message.
+- Ethernet, VLAN, Linux cooked and raw IPv4 captures.
 
-- Captura ao vivo de tráfego MODBUS TCP.
-- Leitura de arquivos `.pcap`.
-- Filtro BPF configurável; por padrão, `tcp port 502`.
-- Decodificação do cabeçalho MBAP.
-- Identificação de function codes MODBUS.
-- Detecção de respostas de exceção MODBUS.
-- Saída legível no terminal.
+## Build
 
-## Instalação
-
-### Debian / Ubuntu
+Debian / Ubuntu / Kali:
 
 ```bash
 sudo apt update
-sudo apt install -y build-essential cmake libpcap-dev
-```
-
-### Fedora
-
-```bash
-sudo dnf install -y gcc cmake libpcap-devel
-```
-
-### Arch Linux
-
-```bash
-sudo pacman -S --needed base-devel cmake libpcap
-```
-
-## Compilação
-
-```bash
+sudo apt install -y build-essential cmake git libpcap-dev libncurses-dev
 git clone https://github.com/RodolfoCDSantos/modgrep.git
 cd modgrep
 cmake -S . -B build
 cmake --build build
 ```
 
-O binário será gerado em:
-
-```text
-build/modgrep
-```
-
-## Uso
-
-### Captura ao vivo
+## Usage
 
 ```bash
+./build/modgrep -r capture.pcap
 sudo ./build/modgrep -i eth0
+./build/modgrep -r capture.pcap -p 1502
+./build/modgrep -r capture.pcap -f "tcp port 502 and host 192.168.88.31"
 ```
 
-Substitua `eth0` pela sua interface de rede. Para listar interfaces disponíveis:
+Options:
 
-```bash
-./build/modgrep --list-interfaces
-```
+- `-r <file>`: analyze a PCAP file.
+- `-i <interface>`: capture live traffic (needs root).
+- `-p <port>`: MODBUS TCP server port (default 502).
+- `-f <filter>`: BPF filter (default: tcp port of -p).
 
-### Analisar um arquivo PCAP
+## Keys
 
-```bash
-./build/modgrep -r captura.pcap
-```
+- Up/Down or j/k: move selection.
+- Enter: open the ladder diagram (conversation list) or toggle raw hex (diagram).
+- PgUp/PgDn: scroll faster in the diagram.
+- q or Esc: go back / quit.
 
-### Filtrar outra porta MODBUS
+## Limitations
 
-```bash
-sudo ./build/modgrep -i eth0 -f "tcp port 1502"
-```
+IPv4 only. MODBUS frames split across several TCP segments are not reassembled yet.
 
-## Exemplo de saída
+## License
 
-```text
-2026-11-25 19:50:01.123456 192.168.1.10:51234 -> 192.168.1.20:502
-  MODBUS TCP  transaction=1 unit=1 function=Read Holding Registers (0x03)
-  starting address=0 quantity=10
-
-2026-11-25 19:50:01.125000 192.168.1.20:502 -> 192.168.1.10:51234
-  MODBUS TCP  transaction=1 unit=1 function=Read Holding Registers (0x03)
-  byte count=20 register values=...
-```
-
-## Limitações atuais
-
-Esta é uma primeira versão funcional. Ainda não reconstrói mensagens MODBUS fragmentadas em múltiplos segmentos TCP nem correlaciona automaticamente requisições e respostas em uma interface interativa. Esses recursos estão planejados para as próximas versões.
-
-## Licença
-
-Distribuído sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
