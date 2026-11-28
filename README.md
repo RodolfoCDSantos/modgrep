@@ -2,7 +2,13 @@
 
 **modgrep** is a fast command-line MODBUS TCP traffic analyzer with an interactive ncurses ladder-diagram interface. It is inspired by [sngrep](https://github.com/irontec/sngrep).
 
-![modgrep ladder diagram analyzing MODBUS TCP traffic](modgrep.png)
+![modgrep start screen showing client and server IPs, message count and first timestamp](modbus01.png)
+
+*Start screen: after loading a capture file, modgrep shows the client and server IP addresses, the number of messages exchanged and the timestamp of the first message.*
+
+![modgrep ladder diagram with timestamps, arrows, message descriptions and raw hex payload](modbus02.png)
+
+*Ladder diagram: timestamps, client and server IPs, arrows showing the direction of each message with its description, and the raw hexadecimal payload in the footer.*
 
 ## Features
 
@@ -82,7 +88,13 @@ modgrep is an independent implementation inspired by [sngrep](https://github.com
 
 **modgrep** é um analisador rápido de tráfego MODBUS TCP para linha de comando, com interface interativa em ncurses e diagrama de escada. É inspirado no [sngrep](https://github.com/irontec/sngrep).
 
-![modgrep analisando tráfego MODBUS TCP em diagrama de escada](modgrep.png)
+![Tela inicial do modgrep com IPs do cliente e do servidor, quantidade de mensagens e timestamp da primeira mensagem](modbus01.png)
+
+*Tela inicial: ao carregar um arquivo de captura, o modgrep mostra os IPs do cliente e do servidor, a quantidade de mensagens trocadas e o timestamp da primeira mensagem.*
+
+![Diagrama de escada do modgrep com timestamps, setas, descrição das mensagens e conteúdo hexadecimal](modbus02.png)
+
+*Diagrama de escada: timestamps, IPs do cliente e do servidor, setas indicando a direção de cada mensagem com sua descrição e, no rodapé, o conteúdo hexadecimal da mensagem.*
 
 ## Recursos
 
