@@ -2,6 +2,8 @@
 
 **modgrep** is a fast command-line MODBUS TCP traffic analyzer with an interactive ncurses ladder-diagram interface. It is inspired by [sngrep](https://github.com/irontec/sngrep).
 
+![modgrep ladder diagram analyzing MODBUS TCP traffic](docs/images/modgrep-screenshot.jpg)
+
 ## Features
 
 - Analyze MODBUS TCP traffic from PCAP files or a live network interface
@@ -23,6 +25,10 @@ cd modgrep
 cmake -S . -B build
 cmake --build build
 ```
+
+### Teltonika RUT950 / RUT955 (RutOS 7.x)
+
+Prebuilt `.ipk` packages for `mips_24kc` are available in the [Releases](https://github.com/RodolfoCDSantos/modgrep/releases) page. See [docs/RUTOS_INSTALL.md](docs/RUTOS_INSTALL.md) for installation instructions.
 
 ## Usage
 
@@ -76,6 +82,8 @@ modgrep is an independent implementation inspired by [sngrep](https://github.com
 
 **modgrep** é um analisador rápido de tráfego MODBUS TCP para linha de comando, com interface interativa em ncurses e diagrama de escada. É inspirado no [sngrep](https://github.com/irontec/sngrep).
 
+![modgrep analisando tráfego MODBUS TCP em diagrama de escada](docs/images/modgrep-screenshot.jpg)
+
 ## Recursos
 
 - Analisa tráfego MODBUS TCP de arquivos PCAP ou de uma interface de rede em tempo real
@@ -97,6 +105,10 @@ cd modgrep
 cmake -S . -B build
 cmake --build build
 ```
+
+### Teltonika RUT950 / RUT955 (RutOS 7.x)
+
+Pacotes `.ipk` pré-compilados para `mips_24kc` estão disponíveis na página de [Releases](https://github.com/RodolfoCDSantos/modgrep/releases). Consulte [docs/RUTOS_INSTALL.md](docs/RUTOS_INSTALL.md) para as instruções de instalação.
 
 ## Uso
 
