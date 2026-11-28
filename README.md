@@ -2,7 +2,7 @@
 
 **modgrep** is a fast command-line MODBUS TCP traffic analyzer with an interactive ncurses ladder-diagram interface. It is inspired by [sngrep](https://github.com/irontec/sngrep).
 
-![modgrep ladder diagram analyzing MODBUS TCP traffic](docs/images/modgrep-screenshot.jpg)
+![modgrep ladder diagram analyzing MODBUS TCP traffic](modgrep.png)
 
 ## Features
 
@@ -82,7 +82,7 @@ modgrep is an independent implementation inspired by [sngrep](https://github.com
 
 **modgrep** é um analisador rápido de tráfego MODBUS TCP para linha de comando, com interface interativa em ncurses e diagrama de escada. É inspirado no [sngrep](https://github.com/irontec/sngrep).
 
-![modgrep analisando tráfego MODBUS TCP em diagrama de escada](docs/images/modgrep-screenshot.jpg)
+![modgrep analisando tráfego MODBUS TCP em diagrama de escada](modgrep.png)
 
 ## Recursos
 
